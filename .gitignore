@@ -8,7 +8,7 @@ venv/
 ENV/
 
 # Downloads
-downloads/
+download/
 
 # Docker
 .env
