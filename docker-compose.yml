@@ -1,0 +1,26 @@
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./downloads:/app/downloads
+      - ./logs:/app/logs
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+      - WERKZEUG_DEBUG_PIN=off
+    restart: unless-stopped
+    networks:
+      - cyber-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:5000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  cyber-network:
+    driver: bridge

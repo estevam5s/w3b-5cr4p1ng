@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Site Downloader</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-color: #00ff88;
+            --dark-bg: #1a1a1a;
+            --darker-bg: #0f0f0f;
+            --light-text: #ffffff;
+            --gray-text: #b3b3b3;
+            --error-color: #ff4444;
+            --success-color: #00cc6a;
+        }
+
+        body {
+            background: var(--dark-bg);
+            color: var(--light-text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(45deg, #2b2b2b, #1a1a1a);
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border: 1px solid #333;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 2.5em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .description {
+            color: var(--gray-text);
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+
+        .connection-status {
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .connected {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .disconnected {
+            background: var(--error-color);
+            color: white;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .url-input-container {
+            background: #2b2b2b;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #333;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="url"] {
+            flex: 1;
+            padding: 15px;
+            border: 1px solid #444;
+            background: #333;
+            color: var(--light-text);
+            border-radius: 8px;
+            outline: none;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        input[type="url"]:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 5px rgba(0, 255, 136, 0.3);
+        }
+
+        input[type="url"].error {
+            border-color: var(--error-color);
+            box-shadow: 0 0 5px rgba(255, 68, 68, 0.3);
+        }
+
+        .error-text {
+            color: var(--error-color);
+            font-size: 0.9em;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .btn {
+            background: var(--primary-color);
+            color: var(--dark-bg);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn i {
+            font-size: 1.1em;
+        }
+
+        .btn:hover {
+            background: var(--success-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.2);
+        }
+
+        .btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #downloadProgress {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #333;
+            border-radius: 10px;
+        }
+
+        .progress-container {
+            margin-top: 15px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #444;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(45deg, var(--primary-color), var(--success-color));
+            transition: width 0.3s ease;
+        }
+
+        #urlList {
+            background: #2b2b2b;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #333;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .url-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #333;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .url-item:hover {
+            background: #3a3a3a;
+            transform: translateX(5px);
+        }
+
+        .url-text {
+            flex: 1;
+            margin-right: 15px;
+            word-break: break-all;
+        }
+
+        .delete-btn {
+            background: var(--error-color);
+            padding: 8px 15px;
+            font-size: 0.9em;
+        }
+
+        .delete-btn:hover {
+            background: #cc0000;
+        }
+
+        #logsContainer {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+            color: var(--primary-color);
+        }
+
+        .status-message {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .status-success {
+            background: var(--success-color);
+        }
+
+        .status-error {
+            background: var(--error-color);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            header {
+                padding: 30px 15px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-download"></i> Cyber Site Downloader</h1>
+            <p class="description">Ferramenta avançada para download de sites</p>
+            <div id="connectionStatus" class="connection-status">
+                Conectando ao servidor...
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="url-input-container">
+                <div class="input-group">
+                    <input type="url" id="urlInput" placeholder="Digite a URL do site (ex: https://exemplo.com)" required>
+                    <button class="btn" onclick="addURL()" id="addUrlBtn" disabled>
+                        <i class="fas fa-plus"></i> Adicionar URL
+                    </button>
+                </div>
+                <p id="urlError" class="error-text">URL inválida. Certifique-se de incluir http:// ou https://</p>
+                
+                <button class="btn" id="startDownload" onclick="startDownload()" disabled>
+                    <i class="fas fa-cloud-download-alt"></i> Iniciar Downloads
+                </button>
+
+                <div id="downloadProgress">
+                    <h3>Progresso do Download</h3>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress" id="progressBar"></div>
+                        </div>
+                        <p id="progressText">0%</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="urlList">
+                <h3>URLs Adicionadas</h3>
+                <div id="urls"></div>
+            </div>
+        </div>
+
+        <div id="logsContainer">
+            <div class="log-entry">Aguardando conexão com o servidor...</div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        let socket;
+        let urlList = [];
+        let downloadInProgress = false;
+        let clientId = null;
+
+        // Inicializa Socket.IO com retry automático
+        function initializeSocket() {
+            socket = io({
+                reconnection: true,
+                reconnectionAttempts: 5,
+                reconnectionDelay: 1000
+            });
+
+            socket.on('connect', () => {
+                console.log('Conectado ao servidor');
+                updateConnectionStatus(true);
+                document.getElementById('addUrlBtn').disabled = false;
+            });
+
+            socket.on('disconnect', () => {
+                console.log('Desconectado do servidor');
+                updateConnectionStatus(false);
+                document.getElementById('addUrlBtn').disabled = true;
+            });
+
+            socket.on('client_id', (data) => {
+                clientId = data.client_id;
+                console.log('ID do cliente recebido:', clientId);
+                addLog('Conectado e pronto para downloads');
+            });
+
+            socket.on('progress', handleProgress);
+            socket.on('log', handleLog);
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusDiv = document.getElementById('connectionStatus');
+            if (connected) {
+                statusDiv.className = 'connection-status connected';
+                statusDiv.textContent = 'Conectado ao servidor';
+            } else {
+                statusDiv.className = 'connection-status disconnected';
+                statusDiv.textContent = 'Desconectado do servidor';
+            }
+        }
+
+        function validateUrl(url) {
+            try {
+                new URL(url);
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+        function addURL() {
+            const urlInput = document.getElementById('urlInput');
+            const url = urlInput.value.trim();
+            const urlError = document.getElementById('urlError');
+
+            if (!url) {
+                showError('Por favor, insira uma URL');
+                return;
+            }
+
+            if (!validateUrl(url)) {
+                showError('URL inválida. Certifique-se de incluir http:// ou https://');
+                urlInput.classList.add('url-error');
+                urlError.style.display = 'block';
+                return;
+            }
+
+            if (urlList.includes(url)) {
+                showError('Esta URL já foi adicionada');
+                return;
+            }
+
+            urlInput.classList.remove('url-error');
+            urlError.style.display = 'none';
+            urlList.push(url);
+            updateURLList();
+            urlInput.value = '';
+            document.getElementById('startDownload').disabled = false;
+            addLog(`URL adicionada: ${url}`);
+        }
+
+        function removeURL(index) {
+            const removedUrl = urlList[index];
+            urlList.splice(index, 1);
+            updateURLList();
+            document.getElementById('startDownload').disabled = urlList.length === 0;
+            addLog(`URL removida: ${removedUrl}`);
+        }
+
+        function updateURLList() {
+            const urlsDiv = document.getElementById('urls');
+            urlsDiv.innerHTML = '';
+
+            urlList.forEach((url, index) => {
+                const urlItem = document.createElement('div');
+                urlItem.className = 'url-item';
+                urlItem.innerHTML = `
+                    <span class="url-text">${url}</span>
+                    <button class="btn delete-btn" onclick="removeURL(${index})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                urlsDiv.appendChild(urlItem);
+            });
+        }
+
+        function showError(message) {
+            const existingError = document.querySelector('.status-message');
+            if (existingError) {
+                existingError.remove();
+            }
+
+            const statusDiv = document.createElement('div');
+            statusDiv.className = 'status-message status-error';
+            statusDiv.textContent = message;
+            
+            const container = document.querySelector('.container');
+            container.insertBefore(statusDiv, document.querySelector('.main-content'));
+            
+            statusDiv.style.display = 'block';
+            setTimeout(() => {
+                statusDiv.remove();
+            }, 3000);
+        }
+
+        function showSuccess(message) {
+            const existingSuccess = document.querySelector('.status-message');
+            if (existingSuccess) {
+                existingSuccess.remove();
+            }
+
+            const statusDiv = document.createElement('div');
+            statusDiv.className = 'status-message status-success';
+            statusDiv.textContent = message;
+            
+            const container = document.querySelector('.container');
+            container.insertBefore(statusDiv, document.querySelector('.main-content'));
+            
+            statusDiv.style.display = 'block';
+            setTimeout(() => {
+                statusDiv.remove();
+            }, 3000);
+        }
+
+        function addLog(message) {
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            
+            const logsContainer = document.getElementById('logsContainer');
+            logsContainer.appendChild(logEntry);
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+
+            // Limite de logs para evitar consumo excessivo de memória
+            const maxLogs = 100;
+            const logs = logsContainer.getElementsByClassName('log-entry');
+            if (logs.length > maxLogs) {
+                logsContainer.removeChild(logs[0]);
+            }
+        }
+
+        function handleProgress(data) {
+            const { url, status, progress } = data;
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const progressDiv = document.getElementById('downloadProgress');
+
+            progressDiv.style.display = 'block';
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `${progress}%`;
+
+            switch(status) {
+                case 'starting':
+                    addLog(`Iniciando download de: ${url}`);
+                    break;
+                case 'downloading':
+                    break;
+                case 'completed':
+                    addLog(`Download completo: ${url}`);
+                    showSuccess(`Download concluído: ${url}`);
+                    break;
+                case 'error':
+                    showError(`Erro no download de ${url}`);
+                    addLog(`Erro no download: ${url}`);
+                    break;
+            }
+
+            if (progress === 100) {
+                setTimeout(() => {
+                    downloadInProgress = false;
+                    progressDiv.style.display = 'none';
+                    urlList = [];
+                    updateURLList();
+                    document.getElementById('startDownload').disabled = true;
+                    showSuccess('Todos os downloads concluídos');
+                }, 2000);
+            }
+        }
+
+        function handleLog(data) {
+            addLog(data.message);
+        }
+
+        function startDownload() {
+            if (downloadInProgress || !clientId || urlList.length === 0) {
+                showError('Não é possível iniciar o download agora');
+                return;
+            }
+
+            downloadInProgress = true;
+            const progressDiv = document.getElementById('downloadProgress');
+            progressDiv.style.display = 'block';
+            
+            addLog('Iniciando processo de download...');
+
+            fetch('/api/download', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    urls: urlList,
+                    client_id: clientId
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro na resposta do servidor');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                addLog('Downloads iniciados com sucesso');
+                showSuccess('Downloads iniciados');
+            })
+            .catch(error => {
+                showError(error.message || 'Erro ao iniciar downloads');
+                downloadInProgress = false;
+                progressDiv.style.display = 'none';
+                console.error('Error:', error);
+            });
+        }
+
+        // Eventos de teclado e carregamento
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeSocket();
+
+            const urlInput = document.getElementById('urlInput');
+            urlInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !document.getElementById('addUrlBtn').disabled) {
+                    addURL();
+                }
+            });
+
+            urlInput.addEventListener('input', function() {
+                this.classList.remove('url-error');
+                document.getElementById('urlError').style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>
