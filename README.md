@@ -304,7 +304,7 @@ def download_site(url, folder_name, client_id):
    docker-compose up -d
 
    # Sem Docker
-   python app.py
+   python server.py
    ```
 
 2. **Acessar a Interface:**
