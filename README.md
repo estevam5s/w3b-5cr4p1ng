@@ -93,28 +93,28 @@ cd cyber-site-downloader
 2. **Construa e inicie os containers:**
 ```bash
 # Construir e iniciar
-docker-compose up --build
+sudo docker-compose up --build
 
 # Rodar em background
-docker-compose up -d
+sudo docker-compose up -d
 
 # Parar os containers
-docker-compose down
+sudo docker-compose down
 
 # Remover volumes
-docker-compose down -v
+sudo docker-compose down -v
 ```
 
 3. **Verificar logs:**
 ```bash
 # Todos os logs
-docker-compose logs
+sudo docker-compose logs
 
 # Logs em tempo real
-docker-compose logs -f
+sudo docker-compose logs -f
 
 # Logs específicos
-docker-compose logs web
+sudo docker-compose logs web
 ```
 
 ### 🔧 Instalação Manual
@@ -301,7 +301,7 @@ def download_site(url, folder_name, client_id):
 1. **Iniciar o Sistema:**
    ```bash
    # Com Docker
-   docker-compose up -d
+   sudo docker-compose up -d
 
    # Sem Docker
    python server.py
@@ -353,10 +353,10 @@ def download_site(url, folder_name, client_id):
 1. **Erro de Conexão:**
 ```bash
 # Verificar status do Docker
-docker-compose ps
+sudo docker-compose ps
 
 # Verificar logs
-docker-compose logs web
+sudo docker-compose logs web
 ```
 
 2. **Problemas de Permissão:**
