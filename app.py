@@ -1,20 +1,24 @@
-# ------------------------------------------------------------------------------
-# Vercsao nova
-# ------------------------------------------------------------------------------
-from flask import Flask, render_template, request, jsonify
+# Monkey patch precisa ser o primeiro
+import eventlet
+eventlet.monkey_patch()
+
+import os
+import shutil
+from flask import Flask, render_template, request, jsonify, send_file
 from flask_socketio import SocketIO, emit
 import threading
 import subprocess
-import os
 from datetime import datetime
 import time
 import queue
 import logging
-import eventlet
 from urllib.parse import urlparse
 
-# Patch para o eventlet
-eventlet.monkey_patch()
+# Criar diretórios necessários
+if not os.path.exists('downloads'):
+    os.makedirs('downloads')
+if not os.path.exists('logs'):
+    os.makedirs('logs')
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'cyber-download-secret'
@@ -174,6 +178,9 @@ def process_download_queue():
                 success = download_site(url, folder_name, client_id)
                 
                 if success:
+                    socketio.emit('folder_name', {
+                        'name': f"Cyber{counter}"
+                    }, room=client_id)
                     counter += 1
                     socketio.emit('progress', {
                         'url': url,
@@ -234,6 +241,32 @@ def start_download():
         logger.error(f"Erro ao iniciar download: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/download/<folder_name>', methods=['GET'])
+def download_folder(folder_name):
+    """Faz o download da pasta compactada"""
+    folder_path = f"downloads/{folder_name}"
+    zip_file_path = f"downloads/{folder_name}.zip"
+
+    # Verifica se a pasta existe
+    if not os.path.exists(folder_path):
+        return jsonify({'error': f'Pasta {folder_name} não encontrada'}), 404
+
+    try:
+        # Remove arquivo zip anterior se existir
+        if os.path.exists(zip_file_path):
+            os.remove(zip_file_path)
+
+        # Compacta a pasta
+        shutil.make_archive(folder_path, 'zip', folder_path)
+        
+        if os.path.exists(zip_file_path):
+            return send_file(zip_file_path, as_attachment=True)
+        else:
+            return jsonify({'error': 'Erro ao criar arquivo zip'}), 500
+    except Exception as e:
+        logger.error(f"Erro ao criar zip: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 @socketio.on('connect')
 def handle_connect():
     """Gerencia conexão do cliente"""
@@ -272,10 +305,6 @@ def health_check():
 
 if __name__ == '__main__':
     try:
-        # Cria pasta de downloads e logs se não existirem
-        os.makedirs('downloads', exist_ok=True)
-        os.makedirs('logs', exist_ok=True)
-        
         # Inicia o processador de fila em uma thread separada
         download_thread = threading.Thread(target=process_download_queue, daemon=True)
         download_thread.start()
