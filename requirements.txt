@@ -23,7 +23,8 @@ Werkzeug==2.3.7
 click==8.1.7
 bidict==0.22.1
 dnspython==2.4.2
-greenlet==2.0.2
+# greenlet==2.0.2
+greenlet>=3.0.0
 itsdangerous==2.1.2
 Jinja2==3.1.2
 MarkupSafe==2.1.3
